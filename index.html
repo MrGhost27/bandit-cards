@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BANDIT CARDS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="theme-cyber">
+    <!-- sync indicator -->
+    <div class="sync-row" id="syncRow">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncTxt">Saving…</span>
+    </div>
+
+    <div class="particles"></div>
+
+    <header>
+        <div class="logo glitch-text" data-text="BANDIT CARDS">BANDIT<em>CARDS</em></div>
+        <div class="hstat">
+            <div>ROUND <b id="hRound">—</b></div>
+            <div id="timer-box" class="hidden">TIMER <b id="hTimer" style="color:var(--accent)">—</b></div>
+            <div>TARGET <b id="target-display">200</b></div>
+            <div>DECK <b id="deck-count">—</b></div>
+        </div>
+        <div class="userbar">
+            <span>PILOT: <b id="hUser">—</b></span>
+            <button class="auth-btn sec" style="padding:3px 8px;font-size:10px;" onclick="sfx('blip'); showSettings()">⚙️</button>
+            <button class="auth-btn sec" style="padding:3px 8px;font-size:8px;" onclick="sfx('blip'); returnToLobby()">LOBBY</button>
+            <button class="auth-btn sec" style="padding:3px 8px;font-size:8px;color:var(--danger);border-color:var(--danger-dim);" onclick="doSignOut()">SIGN OUT</button>
+        </div>
+    </header>
+
+    <!-- ── SETTINGS SCREEN ─────────────────────────────────────────── -->
+    <div class="screen-overlay hidden" id="scr-settings">
+        <div class="auth-box">
+            <h2>// SYSTEM SETTINGS</h2>
+            
+            <div style="margin-bottom: 15px;">
+                <label>INTERFACE THEME</label>
+                <select id="set-theme" onchange="sfx('blip'); updateSettings()" style="width:100%; background:var(--bg); color:var(--text); border:1px solid var(--border); padding:8px; font-family:var(--font-body); font-size:12px;">
+                    <option value="cyberpunk">Cyberpunk (Dark & Neon)</option>
+                    <option value="mgs">Tactical (Metal Gear)</option>
+                    <option value="jim">Groovy (Earthworm Jim)</option>
+                    <option value="whiteout">Whiteout (High Contrast)</option>
+                    <option value="bebop">Bebop (Space Western)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label>MASTER VOLUME: <span id="lbl-volume">100%</span></label>
+                <input type="range" id="set-volume" min="0" max="100" value="100" oninput="updateSettings()" style="width: 100%;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="set-large-cards" onchange="sfx('blip'); updateSettings()">
+                    LARGE CARDS (DESKTOP MODE)
+                </label>
+            </div>
+
+            <button class="auth-btn" onclick="sfx('blip'); hideSettings()">SAVE & CLOSE</button>
+        </div>
+    </div>
+
+    <!-- ── AUTH SCREEN ─────────────────────────────────────────────── -->
+    <div class="screen-overlay" id="scr-auth">
+        <div class="auth-box" id="auth-login">
+            <h2>// AUTHENTICATION</h2>
+            <div>
+                <label>CALLSIGN</label>
+                <input id="au-user" type="text" autocomplete="username" placeholder="your callsign">
+            </div>
+            <div>
+                <label>PASSWORD</label>
+                <input id="au-pass" type="password" autocomplete="current-password" placeholder="••••••••">
+            </div>
+            <div class="auth-err" id="au-err"></div>
+            <button class="auth-btn" id="au-btn" onclick="sfx('blip'); doLogin()">SIGN IN</button>
+            <span class="auth-link" onclick="sfx('blip'); showAuthPanel('register')">No account? Create one</span>
+        </div>
+        <div class="auth-box hidden" id="auth-register">
+            <h2>// CREATE ACCOUNT</h2>
+            <div>
+                <label>CALLSIGN (3+ chars, no spaces)</label>
+                <input id="rg-user" type="text" autocomplete="username" placeholder="your callsign">
+            </div>
+            <div>
+                <label>PASSWORD (6+ chars)</label>
+                <input id="rg-pass" type="password" autocomplete="new-password" placeholder="••••••••">
+            </div>
+            <div>
+                <label>CONFIRM PASSWORD</label>
+                <input id="rg-conf" type="password" autocomplete="new-password" placeholder="••••••••">
+            </div>
+            <div class="auth-err" id="rg-err"></div>
+            <button class="auth-btn" id="rg-btn" onclick="sfx('blip'); doRegister()">CREATE ACCOUNT</button>
+            <span class="auth-link" onclick="sfx('blip'); showAuthPanel('login')">Already have an account</span>
+        </div>
+    </div>
+
+    <!-- ── LOBBY SCREEN ────────────────────────────────────────────── -->
+    <div class="screen-overlay hidden" id="scr-lobby">
+        <div class="lobby-box">
+            <h2>// BANDIT LOBBY</h2>
+            <div style="font-size:9px;letter-spacing:2px;color:var(--dim);text-align:right;margin-top:-8px;margin-bottom:4px;">
+                PILOT: <b style="color:var(--primary)" id="lobbyUser">—</b>
+            </div>
+            <div class="lobby-section">
+                <div class="lbl">CREATE NEW MATCH</div>
+                <div style="display:flex;flex-direction:column;gap:10px;margin:10px 0;">
+                    <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:5px;cursor:pointer;">
+                        <input type="checkbox" id="quick-play-check"> QUICK PLAY (100 PTS)
+                    </label>
+                    <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:5px;cursor:pointer;">
+                        <input type="checkbox" id="redraw-actions-check" checked> REDRAW INITIAL ACTION CARDS
+                    </label>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                    <div class="lbl">TURN TIMER</div>
+                    <select id="timer-select" style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:5px;font-family:var(--font-body);font-size:10px;">
+                        <option value="0">NO TIMER (UNLIMITED)</option>
+                        <option value="30">30 SECONDS (QUICK-FIRE)</option>
+                        <option value="60" selected>1 MINUTE (STANDARD)</option>
+                        <option value="300">5 MINUTES (RELAXED)</option>
+                        <option value="86400">24 HOURS (ASYNC)</option>
+                    </select>
+                </div>
+                <button class="auth-btn" onclick="sfx('blip'); doCreateGame()" style="margin-top:10px;">CREATE GAME</button>
+            </div>
+            <hr class="lobby-divider">
+            <div class="lobby-section">
+                <div class="lbl">JOIN WITH CODE</div>
+                <input id="join-code-input" type="text" maxlength="6"
+                       style="text-transform:uppercase;letter-spacing:4px;font-size:16px;text-align:center;"
+                       placeholder="A B C 1 2 3">
+                <div style="display:flex;gap:10px;">
+                    <button class="auth-btn" onclick="sfx('blip'); doJoinGame()" style="flex:2;">JOIN GAME</button>
+                    <button class="auth-btn sec" onclick="sfx('blip'); doJoinAsSpectator()" style="flex:1;">SPECTATE</button>
+                </div>
+                <div class="auth-err" id="join-err"></div>
+            </div>
+            <hr class="lobby-divider">
+            <div class="lobby-section" id="active-games-section" style="display:none;">
+                <div class="lbl">ACTIVE GAMES</div>
+                <div id="active-games-list" style="display:flex;flex-direction:column;gap:5px;"></div>
+                <hr class="lobby-divider">
+            </div>
+            <button class="auth-btn sec" onclick="doSignOut()">SIGN OUT</button>
+        </div>
+    </div>
+
+    <!-- ── WAITING ROOM SCREEN ────────────────────────────────────── -->
+    <div class="screen-overlay hidden" id="scr-waiting">
+        <div class="wait-box">
+            <h2 id="wait-title">// WAITING ROOM</h2>
+            <div class="lbl">JOIN CODE · CLICK TO COPY</div>
+            <div class="code-display" id="code-display" onclick="copyCode()">——————</div>
+            <div id="seat-rows" style="display:flex;flex-direction:column;gap:6px;"></div>
+            
+            <!-- AI Controls for Host -->
+            <div id="ai-controls" class="hidden" style="border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:8px;">
+                <div class="lbl">ADD AI OPPONENT</div>
+                <div style="display:flex;gap:10px;">
+                    <select id="ai-difficulty" style="flex:1;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:5px;font-size:10px;">
+                        <option value="1">LVL 1: ROOKIE</option>
+                        <option value="3" selected>LVL 3: PRO</option>
+                        <option value="5">LVL 5: ELITE (CARD COUNTER)</option>
+                    </select>
+                    <select id="ai-personality" style="flex:1;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:5px;font-size:10px;">
+                        <option value="balanced">BALANCED</option>
+                        <option value="reckless">RECKLESS</option>
+                        <option value="cautious">CAUTIOUS</option>
+                        <option value="unpredictable">CHAOTIC</option>
+                    </select>
+                </div>
+                <button class="auth-btn sec" onclick="addAiPlayer()">+ ADD AI TO NEXT SEAT</button>
+            </div>
+
+            <div class="wait-status" id="wait-status"></div>
+            <button class="auth-btn" id="btn-start" onclick="doStartGame()" disabled>START GAME</button>
+            <button class="auth-btn sec" onclick="leaveWaiting()">LEAVE LOBBY</button>
+        </div>
+    </div>
+
+    <!-- ── GAME SCREEN ────────────────────────────────────────────── -->
+    <div class="game-wrap hidden" id="scr-game">
+        <div class="game-main">
+            <div id="players-area" style="width:100%; display:flex; flex-direction:column; gap:10px; align-items:center;">
+                <!-- Filled by UI.js -->
+            </div>
+
+            <div class="action-bar hidden" id="action-bar">
+                <button class="game-btn hit" onclick="doHit()">HIT</button>
+                <button class="game-btn stay" onclick="doStay()">STAY</button>
+            </div>
+
+            <div class="game-log" id="game-log">
+                <!-- Log entries -->
+            </div>
+        </div>
+
+        <!-- Spectator Stats Overlay -->
+        <div id="stats-panel" class="hidden">
+            <div class="stats-header">// OVERSIGHT DATA (SPECTATOR ONLY)</div>
+            <div id="stats-content"></div>
+        </div>
+    </div>
+
+    <!-- ── GAME OVER SCREEN ───────────────────────────────────────── -->
+    <div class="screen-overlay hidden" id="scr-gameover">
+        <div class="gameover-box">
+            <div class="gameover-title">// SESSION COMPLETE</div>
+            <div class="gameover-name" id="gameover-winner">WINNER</div>
+            <div class="gameover-scores" id="gameover-scores"></div>
+            <button class="auth-btn" style="margin-top:8px;width:100%;" onclick="returnToLobby()">RETURN TO LOBBY</button>
+        </div>
+    </div>
+
+    <!-- ── SCRIPTS ────────────────────────────────────────────────── -->
+    <script src="js/config.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/deck.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/lobby.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/sounds.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/realtime.js"></script>
+    <script src="js/settings.js"></script>
+
+    <script>
+        // Start the app
+        window.onload = () => {
+            initApp();
+        };
+    </script>
+</body>
+</html>

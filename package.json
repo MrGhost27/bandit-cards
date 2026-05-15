@@ -1,0 +1,13 @@
+{
+  "name": "bandit-cards",
+  "version": "1.0.0",
+  "description": "Bandit Cards - Turn-based multiplayer strategy game",
+  "main": "index.html",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.43.0",
+    "http-server": "^14.1.1"
+  }
+}
