@@ -2,7 +2,7 @@
 //  BANDIT CARDS — Theme & Navigation Logic
 // ================================================================
 
-const THEMES = ['cyberpunk', 'whiteout', 'bebop', 'mgs', 'jim'];
+const THEMES = ['cyberpunk', 'whiteout', 'bebop', 'mgs', 'jim', 'aliens'];
 
 function toggleTheme() {
     let current = localStorage.getItem('bandit_theme') || 'cyberpunk';
@@ -24,6 +24,7 @@ function applyTheme(theme) {
     if (theme === 'bebop') logo.innerHTML = 'SPACE<em>COWBOY</em>';
     else if (theme === 'mgs') logo.innerHTML = 'TACTICAL<em>CODEC</em>';
     else if (theme === 'jim') logo.innerHTML = 'GROOVY<em>!</em>';
+    else if (theme === 'aliens') logo.innerHTML = 'WEYLAND<em>YUTANI</em>';
     else logo.innerHTML = 'BANDIT<em>CARDS</em>';
 
     // Update BGM

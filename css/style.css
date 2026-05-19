@@ -323,7 +323,9 @@ input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-g
 .card {
   width: 42px;
   height: 60px;
-  background-color: #1a1a2a;
+  background-color: #2a2a3a;
+  background-image: url('../assets/card-texture.png');
+  background-blend-mode: overlay;
   background-size: cover;
   background-position: center;
   border: 1px solid rgba(255,255,255,0.2);
@@ -341,20 +343,19 @@ input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-g
 }
 
 .card.standard {
-  background-image: url('../assets/card_standard.png');
   color: var(--primary);
   text-shadow: 0 0 10px var(--primary-glow);
 }
 
 .card.action { 
-  background-image: url('../assets/card_action.png');
   border-color: var(--accent); 
   color: var(--accent); 
   text-shadow: 0 0 10px var(--accent-glow); 
 }
 
 .card.modifier { 
-  background: linear-gradient(135deg, #443300, #221100);
+  background-color: #aa8800;
+  background-blend-mode: multiply;
   border-color: var(--amber); 
   color: var(--amber); 
   box-shadow: inset 0 0 10px rgba(255, 170, 0, 0.2), 3px 3px 10px rgba(0,0,0,0.6);
@@ -611,3 +612,22 @@ body.theme-jim .card { border-radius: 8px; background: #222; border-color: var(-
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary-dim); }
+
+/* ── THEME: ALIENS (LV-426) ── */
+body.theme-aliens {
+    --bg: #030a05;
+    --panel: rgba(10, 20, 15, 0.9);
+    --primary: #00ff00; /* Motion Tracker Green */
+    --primary-dim: #004400;
+    --primary-glow: rgba(0, 255, 0, 0.4);
+    --accent: #ffaa00; /* Caution Yellow */
+    --accent-dim: #885500;
+    --text: #d0f0d0;
+    --dim: #558855;
+    --border: rgba(0, 255, 0, 0.15);
+}
+body.theme-aliens { background-image: url('../assets/aliens-bg.png'); background-size: cover; background-attachment: fixed; }
+body.theme-aliens .particles { opacity: 0.1; background: #00ff00; }
+body.theme-aliens .player-row { border-color: var(--dim); border-radius: 2px; }
+body.theme-aliens .card { border-radius: 2px; border-color: var(--primary-dim); }
+body.theme-aliens .action-bar { border-style: dashed; border-width: 2px; border-color: var(--accent-dim); }
