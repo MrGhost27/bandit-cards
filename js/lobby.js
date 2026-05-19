@@ -117,8 +117,53 @@ async function refreshActiveGames() {
       gameId = g.id; joinCode = g.join_code;
       tryRejoin(g.id);
     };
-    list.appendChild(btn);
+    
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.marginBottom = '8px';
+    
+    btn.style.flex = '1';
+    btn.style.marginBottom = '0';
+    
+    const delBtn = document.createElement('button');
+    delBtn.className = 'auth-btn';
+    delBtn.style.cssText = 'font-size:12px; padding: 0 10px; margin-left: 8px; border-color: var(--danger); color: var(--danger); font-weight: bold; width: auto;';
+    delBtn.innerHTML = 'X';
+    delBtn.title = "Delete or Leave Game";
+    delBtn.onclick = async (e) => {
+        e.stopPropagation();
+        if (confirm("Are you sure you want to abandon this game?")) {
+            await abandonGame(g.id);
+        }
+    };
+
+    wrapper.appendChild(btn);
+    wrapper.appendChild(delBtn);
+    list.appendChild(wrapper);
   });
+}
+
+async function abandonGame(idToAbandon) {
+    showSync('Removing game...');
+    
+    // Check if user is host
+    const { data: g } = await db.from('bandit_games').select('host_id').eq('id', idToAbandon).single();
+    if (g && g.host_id === currentUser.id) {
+        await db.from('bandit_players').delete().eq('game_id', idToAbandon);
+        await db.from('bandit_games').delete().eq('id', idToAbandon);
+    } else {
+        await db.from('bandit_players').delete().eq('game_id', idToAbandon).eq('profile_id', currentUser.id);
+    }
+
+    if (gameId === idToAbandon) {
+        gameId = null;
+        joinCode = null;
+        gameCache = null;
+        localStorage.removeItem('bandit_game_' + currentUser.id);
+    }
+
+    showSynced();
+    refreshActiveGames();
 }
 
 async function doJoinAsSpectator() {

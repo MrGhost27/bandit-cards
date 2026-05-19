@@ -6,20 +6,17 @@ let aiThinking = false;
 
 /**
  * Main entry point for AI turns.
- * Loops internally as long as it's this AI's turn.
  */
 async function processAiTurn(seatNumber) {
   if (!isHost || !gameCache || aiThinking) return;
   aiThinking = true;
 
   try {
-    while (true) {
-      if (!gameCache) break;
       const g = gameCache;
       const rs = g.round_state;
 
       // Stop if it's no longer this AI's turn
-      if (rs.active_seat !== seatNumber || rs.phase !== 'playing') break;
+      if (rs.active_seat !== seatNumber || rs.phase !== 'playing') return;
 
       console.log(`[AI] Seat ${seatNumber} is thinking...`);
       
@@ -35,32 +32,35 @@ async function processAiTurn(seatNumber) {
       
       // 1. Handle Action Card Targeting
       if (rs.awaiting_target && rs.awaiting_target.seat === seatNumber) {
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 800)); // natural delay
         await resolveAiAction(seatNumber, rs.awaiting_target.card);
-        continue; 
+        return; 
       }
 
       // 2. Decide: HIT or STAY
       const decision = decideAiMove(player, cards, g.deck_state || [], rs.scores);
       console.log(`[AI] Seat ${seatNumber} decision: ${decision}`);
       
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 1000)); // natural delay
       
       if (decision === 'hit') {
         await doHit(seatNumber);
-        break; // One card per turn — pass to the next player
       } else {
         await doStay(seatNumber);
-        break; // Turn ended
       }
-
-      // Small pause to allow the local state (gameCache) to update from the move
-      await new Promise(r => setTimeout(r, 100));
-    }
   } catch (err) {
     console.error(`[AI] Critical error for seat ${seatNumber}:`, err);
   } finally {
     aiThinking = false;
+    
+    // Auto-trigger the next AI player if it is their turn
+    // (since we might have missed their database event while we were locked)
+    if (gameCache && gameCache.round_state) {
+        const rs = gameCache.round_state;
+        if (rs.phase === 'playing' && rs.hands[rs.active_seat] && rs.hands[rs.active_seat].is_ai) {
+            setTimeout(() => processAiTurn(rs.active_seat), 500);
+        }
+    }
   }
 }
 
