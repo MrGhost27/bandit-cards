@@ -42,6 +42,7 @@ async function doHit(actingSeat = null) {
         discard.push(card); 
         rs.log.push(`${playerName} drew a duplicate ${card.value}, but used SAFETY! Both discarded.`);
         rs.safety_consumed_seat = seat; // Trigger VFX
+        advanceTurn(rs); // Safe after safety — pass turn
       } else {
         hand.cards.push(card);
         hand.status = 'busted';
@@ -52,6 +53,7 @@ async function doHit(actingSeat = null) {
     } else {
       hand.cards.push(card);
       rs.log.push(`${playerName} drew ${card.value} — Safe.`);
+      advanceTurn(rs); // One card per turn — pass turn immediately
     }
   } 
   else if (card.type === 'action') {
@@ -80,9 +82,12 @@ async function selectTarget(targetSeat, actingSeat = null) {
   delete rs.zap_target_seat;
   delete rs.safety_consumed_seat;
   const card = rs.awaiting_target.card;
-  if (targetSeat === seat && card.effect !== 'freeze') { 
-    if (seat === mySeat) addLog('Cannot target yourself with this card!', 'bad'); 
-    return; 
+  // Any active player (including self) is a valid target for action cards.
+  // Self-targeting is only meaningful when there are no other active players;
+  // the UI and AI already enforce that logic — we just don't block it here.
+  if (targetSeat === seat && rs.hands[seat].status !== 'playing') {
+    if (seat === mySeat) addLog('Cannot target yourself — you are no longer active!', 'bad');
+    return;
   }
 
   const targetHand = rs.hands[targetSeat];
@@ -188,6 +193,9 @@ async function doStay(actingSeat = null) {
   const playerName = hand.name || 'Player ' + seat;
   rs.log.push(`${playerName} stayed with ${hand.round_score} points.`);
 
+  // Clear any pending action card state so it doesn't bleed into the next turn/round
+  delete rs.awaiting_target;
+
   Object.values(rs.hands).forEach(h => h.lastDrawn = false);
   advanceTurn(rs);
 
@@ -280,6 +288,8 @@ async function startNextRound() {
   rs.dealer_seat = newDealer;
   rs.phase = 'playing';
   rs.current_round = nextRound;
+  // Safety net: ensure no stale action-card state from the previous round
+  delete rs.awaiting_target;
   rs.log.push(`── Round ${nextRound} begins ──`);
 
   updateGameState(deck, discard, rs);

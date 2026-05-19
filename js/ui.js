@@ -154,13 +154,12 @@ function renderGame() {
     const isActive = seat === activeSeat && phase === 'playing';
 
     // Targeting Logic:
-    // 1. Can target others if they are 'playing'.
-    // 2. Can target self ONLY IF it's a Freeze card and no one else is active.
+    // Any active player (including self) is a valid target.
+    // Self-targeting is only allowed when there are no other active players.
     let isTargetable = false;
     if (needsTarget) {
-      const cardEffect = rs.awaiting_target.card.effect;
       if (!isMe && status === 'playing') isTargetable = true;
-      if (isMe && cardEffect === 'freeze' && otherActivePlayers.length === 0) isTargetable = true;
+      if (isMe && status === 'playing' && otherActivePlayers.length === 0) isTargetable = true;
     }
 
     const rowClass = [
@@ -222,10 +221,10 @@ function renderGame() {
   // If I'm targetting, show a specific message
   if (needsTarget) {
     const card = rs.awaiting_target.card;
-    const mustSelfTarget = card.effect === 'freeze' && otherActivePlayers.length === 0;
+    const mustSelfTarget = otherActivePlayers.length === 0;
     
     let msg = mustSelfTarget 
-      ? `SYSTEM ALERT: NO VALID TARGETS. YOU MUST FREEZE YOURSELF.`
+      ? `SYSTEM ALERT: NO VALID TARGETS. YOU MUST ${card.name.toUpperCase()} YOURSELF.`
       : `SELECT AN OPPONENT TO ${card.name.toUpperCase()}`;
 
     actionBar.innerHTML = `<div style="color:var(--accent);font-family:var(--font-display);font-size:10px;letter-spacing:2px;padding:10px;text-align:center;width:100%;">
@@ -309,8 +308,13 @@ function startHeaderTimer(deadline) {
     if (remaining === 0 && isHost) {
       const rs = gameCache.round_state;
       if (rs.active_seat && rs.phase === 'playing') {
-        rs.log.push(`Time expired for ${rs.hands[rs.active_seat].name} — Auto-Stayed.`);
-        doStay(rs.active_seat);
+        if (rs.awaiting_target) {
+          rs.log.push(`Time expired for ${rs.hands[rs.active_seat].name} — Action forced on self!`);
+          selectTarget(rs.active_seat, rs.active_seat);
+        } else {
+          rs.log.push(`Time expired for ${rs.hands[rs.active_seat].name} — Auto-Stayed.`);
+          doStay(rs.active_seat);
+        }
       }
       stopHeaderTimer();
     }

@@ -48,6 +48,7 @@ async function processAiTurn(seatNumber) {
       
       if (decision === 'hit') {
         await doHit(seatNumber);
+        break; // One card per turn — pass to the next player
       } else {
         await doStay(seatNumber);
         break; // Turn ended
@@ -121,13 +122,14 @@ async function resolveAiAction(aiSeat, card) {
   const seats = Object.keys(rs.hands).map(Number);
   const targetScore = gameCache.target_score || 200;
   
-  // Find a target
+  // Find a target: prefer other active players, but fall back to self
+  // for any action card when no one else is active.
   let targets = seats.filter(s => s !== aiSeat && rs.hands[s].status === 'playing');
   
   let targetSeat = null;
   if (targets.length === 0) {
-    if (card.effect === 'freeze') targetSeat = aiSeat;
-    else return; 
+    // No other active players — must self-target
+    targetSeat = aiSeat;
   } else {
     // Target the person with the highest overall score
     targets.sort((a, b) => (rs.scores[b] || 0) - (rs.scores[a] || 0));
