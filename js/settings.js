@@ -10,7 +10,8 @@ function loadSettings() {
     let settings = {
         theme: 'cyberpunk',
         volume: 100,
-        largeCards: false
+        largeCards: false,
+        soundtrack: 'theme_default'
     };
 
     try {
@@ -30,11 +31,13 @@ function loadSettings() {
     const elTheme = document.getElementById('set-theme');
     const elVol = document.getElementById('set-volume');
     const elLarge = document.getElementById('set-large-cards');
+    const elSoundtrack = document.getElementById('set-soundtrack');
     const elLblVol = document.getElementById('lbl-volume');
 
     if (elTheme) elTheme.value = settings.theme;
     if (elVol) elVol.value = settings.volume;
     if (elLarge) elLarge.checked = settings.largeCards;
+    if (elSoundtrack) elSoundtrack.value = settings.soundtrack || 'theme_default';
     if (elLblVol) elLblVol.textContent = settings.volume + '%';
 
     // Apply global variables and styles
@@ -55,6 +58,7 @@ function updateSettings() {
     const theme = document.getElementById('set-theme').value;
     const volume = parseInt(document.getElementById('set-volume').value, 10);
     const largeCards = document.getElementById('set-large-cards').checked;
+    const soundtrack = document.getElementById('set-soundtrack') ? document.getElementById('set-soundtrack').value : 'theme_default';
 
     document.getElementById('lbl-volume').textContent = volume + '%';
 
@@ -73,7 +77,7 @@ function updateSettings() {
 
     // Save
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-        theme, volume, largeCards
+        theme, volume, largeCards, soundtrack
     }));
 }
 

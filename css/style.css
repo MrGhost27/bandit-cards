@@ -631,3 +631,23 @@ body.theme-aliens .particles { opacity: 0.1; background: #00ff00; }
 body.theme-aliens .player-row { border-color: var(--dim); border-radius: 2px; }
 body.theme-aliens .card { border-radius: 2px; border-color: var(--primary-dim); }
 body.theme-aliens .action-bar { border-style: dashed; border-width: 2px; border-color: var(--accent-dim); }
+
+/* ── THEME: CARTOON ALIENS (KIDS) ── */
+body.theme-aliens-toon {
+    --bg: #1a0f2e;
+    --panel: rgba(40, 20, 80, 0.9);
+    --primary: #33ff33; /* Slime Green */
+    --primary-dim: #118811;
+    --primary-glow: rgba(51, 255, 51, 0.6);
+    --accent: #ff33ff; /* Bright Purple */
+    --accent-dim: #aa11aa;
+    --text: #ffffff;
+    --dim: #aabbcc;
+    --border: rgba(255, 51, 255, 0.4);
+}
+body.theme-aliens-toon { background-image: url('../assets/aliens-toon-bg.png'); background-size: cover; background-attachment: fixed; }
+body.theme-aliens-toon .particles { opacity: 0.5; background: #33ff33; }
+body.theme-aliens-toon .player-row { border-color: var(--accent); border-radius: 12px; border-width: 3px; }
+body.theme-aliens-toon .card { border-radius: 8px; border-color: var(--primary); box-shadow: 4px 4px 0 rgba(0,0,0,0.5); }
+body.theme-aliens-toon .action-bar { border-radius: 20px; border-color: var(--primary); }
+body.theme-aliens-toon .game-btn { border-radius: 8px; }

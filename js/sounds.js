@@ -13,31 +13,80 @@ try {
 let bgmNode = null;
 let bgmGain = null;
 
+let bgmAudioEl = null;
+let bgmMediaSource = null;
+
 /**
- * Updates the background music based on the active theme.
+ * Updates the background music based on the active theme and user settings.
  */
 function updateBgm(theme) {
     if (!audioCtx) return;
+    
+    // Stop old oscillator bgm
     if (bgmNode) { bgmNode.stop(); bgmNode = null; }
     
+    // Stop old HTML Audio bgm
+    if (bgmAudioEl) {
+        bgmAudioEl.pause();
+        bgmAudioEl.src = '';
+    }
+
     bgmGain = bgmGain || audioCtx.createGain();
     bgmGain.connect(audioCtx.destination);
-    bgmGain.gain.setValueAtTime(0.02 * (window.masterVolume ?? 1.0), audioCtx.currentTime);
+    
+    const settingsStr = localStorage.getItem('bandit_global_settings');
+    const settings = settingsStr ? JSON.parse(settingsStr) : {};
+    const customTrack = settings.soundtrack;
 
+    const trackToPlay = customTrack && customTrack !== 'theme_default' ? customTrack : getThemeDefaultTrack(theme);
+
+    if (trackToPlay && trackToPlay.endsWith('.mp3')) {
+        playAudioFile(trackToPlay);
+    } else {
+        playSyntheticBgm(theme);
+    }
+}
+
+function getThemeDefaultTrack(theme) {
+    // Both alien themes default to the user's mp3 if they placed one
+    if (theme === 'aliens' || theme === 'aliens-toon') return 'alien_soundtrack.mp3';
+    return null; // fallback to synthetic
+}
+
+function playAudioFile(filename) {
+    if (!bgmAudioEl) {
+        bgmAudioEl = new Audio();
+        bgmAudioEl.loop = true;
+        try {
+            bgmMediaSource = audioCtx.createMediaElementSource(bgmAudioEl);
+            bgmMediaSource.connect(bgmGain);
+        } catch (e) {
+            console.warn("Could not connect audio element to Web Audio API:", e);
+        }
+    }
+    
+    // Fade in
+    bgmGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    bgmGain.gain.linearRampToValueAtTime(0.3 * (window.masterVolume ?? 1.0), audioCtx.currentTime + 2);
+    
+    bgmAudioEl.src = 'assets/audio/' + filename;
+    bgmAudioEl.play().catch(e => console.log("Audio play blocked. User must interact with document first.", e));
+}
+
+function playSyntheticBgm(theme) {
+    bgmGain.gain.setValueAtTime(0.02 * (window.masterVolume ?? 1.0), audioCtx.currentTime);
     const now = audioCtx.currentTime;
 
     if (theme === 'mgs') {
-        // Smooth industrial hum for MGS (Sine wave is much softer than square)
         bgmNode = audioCtx.createOscillator();
         bgmNode.type = 'sine';
         bgmNode.frequency.setValueAtTime(50, now);
         bgmNode.connect(bgmGain);
         bgmNode.start();
     } else if (theme === 'jim') {
-        // Funky bouncy bass for Jim
         playJimBassLoop();
-    } else if (theme === 'cyberpunk') {
-        // Cyberpunk synth drone (Triangle is smoother than sawtooth)
+    } else {
+        // Generic drone for cyberpunk, aliens, whiteout, etc.
         bgmNode = audioCtx.createOscillator();
         bgmNode.type = 'triangle';
         bgmNode.frequency.setValueAtTime(45, now);
@@ -45,6 +94,7 @@ function updateBgm(theme) {
         bgmNode.start();
     }
 }
+
 
 function playJimBassLoop() {
     if (!audioCtx || bgmNode) return;
