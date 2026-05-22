@@ -12,6 +12,7 @@ async function doCreateGame() {
   const code = generateCode();
   const isQuick = document.getElementById('quick-play-check')?.checked || false;
   const redrawActions = document.getElementById('redraw-actions-check')?.checked || false;
+  const faceDown = document.getElementById('face-down-check')?.checked || false;
   const timer = parseInt(document.getElementById('timer-select')?.value || '60');
   
   const gameData = {
@@ -20,6 +21,7 @@ async function doCreateGame() {
     target_score: isQuick ? QUICK_TARGET : DEFAULT_TARGET,
     quick_play: isQuick,
     redraw_initial_actions: redrawActions,
+    face_down_cards: faceDown,
     turn_timer_secs: timer === 0 ? null : timer
   };
 

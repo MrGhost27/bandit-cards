@@ -11,7 +11,9 @@ function loadSettings() {
         theme: 'cyberpunk',
         volume: 100,
         largeCards: false,
-        soundtrack: 'theme_default'
+        soundtrack: 'theme_default',
+        displayMode: 'auto',
+        resolutionScale: 100
     };
 
     try {
@@ -32,16 +34,23 @@ function loadSettings() {
     const elVol = document.getElementById('set-volume');
     const elLarge = document.getElementById('set-large-cards');
     const elSoundtrack = document.getElementById('set-soundtrack');
+    const elDisplay = document.getElementById('set-display-mode');
+    const elScale = document.getElementById('set-scale');
     const elLblVol = document.getElementById('lbl-volume');
+    const elLblScale = document.getElementById('lbl-scale');
 
     if (elTheme) elTheme.value = settings.theme;
     if (elVol) elVol.value = settings.volume;
     if (elLarge) elLarge.checked = settings.largeCards;
     if (elSoundtrack) elSoundtrack.value = settings.soundtrack || 'theme_default';
+    if (elDisplay) elDisplay.value = settings.displayMode || 'auto';
+    if (elScale) elScale.value = settings.resolutionScale || 100;
     if (elLblVol) elLblVol.textContent = settings.volume + '%';
+    if (elLblScale) elLblScale.textContent = (settings.resolutionScale || 100) + '%';
 
     // Apply global variables and styles
     window.masterVolume = settings.volume / 100;
+    window.globalSettings = settings;
     
     if (typeof applyTheme === 'function') {
         applyTheme(settings.theme);
@@ -59,11 +68,15 @@ function updateSettings() {
     const volume = parseInt(document.getElementById('set-volume').value, 10);
     const largeCards = document.getElementById('set-large-cards').checked;
     const soundtrack = document.getElementById('set-soundtrack') ? document.getElementById('set-soundtrack').value : 'theme_default';
+    const displayMode = document.getElementById('set-display-mode') ? document.getElementById('set-display-mode').value : 'auto';
+    const resolutionScale = parseInt(document.getElementById('set-scale') ? document.getElementById('set-scale').value : '100', 10);
 
     document.getElementById('lbl-volume').textContent = volume + '%';
+    if (document.getElementById('lbl-scale')) document.getElementById('lbl-scale').textContent = resolutionScale + '%';
 
     // Update state immediately
     window.masterVolume = volume / 100;
+    window.globalSettings = { theme, volume, largeCards, soundtrack, displayMode, resolutionScale };
     
     if (typeof applyTheme === 'function') {
         applyTheme(theme);
@@ -75,10 +88,12 @@ function updateSettings() {
         document.body.classList.remove('large-cards');
     }
 
+    if (typeof enforceScreenFit === 'function') {
+        enforceScreenFit();
+    }
+
     // Save
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-        theme, volume, largeCards, soundtrack
-    }));
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(window.globalSettings));
 }
 
 function showSettings() {

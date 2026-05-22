@@ -185,19 +185,31 @@ function renderGame() {
     const cardsHtml = cards.map((c, i) => {
       const isLast = i === cards.length - 1 && h.lastDrawn;
       const isBust = status === 'busted' && i === cards.length - 1;
+      
+      const isHidden = g.face_down_cards && i > 0 && !isMe;
+
       let cls = 'card';
+      if (isHidden) cls += ' card-back';
+      
       if (isBust) cls += ' bust-card';
       else if (isLast) cls += ' new';
       
-      if (c.type === 'number') cls += ' standard';
-      else if (c.type === 'action') cls += ' action';
-      else if (c.type === 'modifier') cls += ' modifier';
+      if (!isHidden) {
+          if (c.type === 'number') cls += ' standard';
+          else if (c.type === 'action') cls += ' action';
+          else if (c.type === 'modifier') cls += ' modifier';
+      }
 
-      let label = c.value;
-      if (c.type === 'action') label = c.name.charAt(0);
-      if (c.type === 'modifier') label = c.name;
+      let label = '';
+      let sub = '';
+
+      if (!isHidden) {
+          label = c.value;
+          if (c.type === 'action') label = c.name.charAt(0);
+          if (c.type === 'modifier') label = c.name;
+          sub = c.type === 'action' ? `<span class="card-label">${c.name}</span>` : '';
+      }
       
-      const sub = c.type === 'action' ? `<span class="card-label">${c.name}</span>` : '';
       return `<div class="${cls}">${label}${sub}</div>`;
     }).join('');
 
@@ -360,6 +372,14 @@ function copyCode() {
 // DYNAMIC SCREEN FITTING (Mobile scaling)
 // ================================================================
 function enforceScreenFit() {
+  const mode = window.globalSettings?.displayMode || 'auto';
+  const userScale = (window.globalSettings?.resolutionScale || 100) / 100;
+
+  if (mode === 'desktop') {
+     document.documentElement.style.setProperty('--app-zoom', userScale);
+     return;
+  }
+
   const minW = 420;
   const minH = 750;
   const ww = window.innerWidth;
@@ -369,10 +389,12 @@ function enforceScreenFit() {
   const scaleH = wh / minH;
   let scale = Math.min(scaleW, scaleH);
   
-  // Only zoom out on small screens, never zoom in
-  if (scale > 1) scale = 1; 
+  // Only zoom out on small screens, never zoom in (unless forced by mode)
+  if (mode === 'auto') {
+      if (scale > 1) scale = 1; 
+  }
   
-  document.documentElement.style.setProperty('--app-zoom', scale);
+  document.documentElement.style.setProperty('--app-zoom', scale * userScale);
 }
 
 // Initial calculation and listener binding

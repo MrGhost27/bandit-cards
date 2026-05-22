@@ -60,6 +60,7 @@ async function doHit(actingSeat = null) {
     hand.cards.push(card);
     if (card.effect === 'second_chance') {
       rs.log.push(`${playerName} drew a SAFETY card! It will protect their next bust.`);
+      advanceTurn(rs);
     } else {
       rs.awaiting_target = { card, seat: seat };
       rs.log.push(`${playerName} drew ${card.name}! Selecting a target...`);
@@ -68,6 +69,7 @@ async function doHit(actingSeat = null) {
   else if (card.type === 'modifier') {
     hand.cards.push(card);
     rs.log.push(`${playerName} drew a ${card.name} modifier!`);
+    advanceTurn(rs);
   }
 
   updateGameState(deck, discard, rs);
@@ -270,7 +272,22 @@ async function startNextRound() {
   const newDealer = seats[newDealerIdx];
 
   seats.forEach(seat => {
-    const card = deck.length > 0 ? deck.shift() : null;
+    let card = deck.length > 0 ? deck.shift() : null;
+    
+    // HOUSE RULE: Redraw initial action cards
+    if (gameCache.redraw_initial_actions && card) {
+      const drawnActions = [];
+      while (card && card.type !== 'number') {
+        console.log(`[House Rule] Round ${nextRound} Redrawing initial action card: ${card.name}`);
+        drawnActions.push(card);
+        card = deck.length > 0 ? deck.shift() : null;
+      }
+      if (drawnActions.length > 0) {
+        deck.push(...drawnActions);
+        deck.sort(() => Math.random() - 0.5); // Simple reshuffle
+      }
+    }
+
     const h = rs.hands[seat];
     rs.hands[seat] = {
       cards: card ? [card] : [],

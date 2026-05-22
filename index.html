@@ -63,6 +63,20 @@
             </div>
 
             <div style="margin-bottom: 15px;">
+                <label>DISPLAY MODE</label>
+                <select id="set-display-mode" onchange="updateSettings()" style="width:100%; background:var(--bg); color:var(--text); border:1px solid var(--border); padding:8px; font-family:var(--font-body); font-size:12px;">
+                    <option value="auto">Auto (Responsive)</option>
+                    <option value="desktop">Desktop (100% Scale)</option>
+                    <option value="mobile">Mobile (Force Scale)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label>RESOLUTION SCALE: <span id="lbl-scale">100%</span></label>
+                <input type="range" id="set-scale" min="50" max="150" value="100" oninput="updateSettings()" style="width: 100%;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
                 <label>MASTER VOLUME: <span id="lbl-volume">100%</span></label>
                 <input type="range" id="set-volume" min="0" max="100" value="100" oninput="updateSettings()" style="width: 100%;">
             </div>
@@ -129,6 +143,9 @@
                     </label>
                     <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:5px;cursor:pointer;">
                         <input type="checkbox" id="redraw-actions-check" checked> REDRAW INITIAL ACTION CARDS
+                    </label>
+                    <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:5px;cursor:pointer;">
+                        <input type="checkbox" id="face-down-check"> HOLD CARDS FACE DOWN (EXCEPT FIRST)
                     </label>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:5px;">
