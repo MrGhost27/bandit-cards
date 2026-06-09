@@ -2,21 +2,24 @@
 //  BANDIT CARDS — AI Intelligence (Phase 2)
 // ================================================================
 
-let aiThinking = false;
+const aiThinking = new Set();
 
 /**
  * Main entry point for AI turns.
+ * Loops internally as long as it's this AI's turn.
  */
 async function processAiTurn(seatNumber) {
-  if (!isHost || !gameCache || aiThinking) return;
-  aiThinking = true;
+  if (!isHost || !gameCache || aiThinking.has(seatNumber)) return;
+  aiThinking.add(seatNumber);
 
   try {
+    while (true) {
+      if (!gameCache) break;
       const g = gameCache;
       const rs = g.round_state;
 
       // Stop if it's no longer this AI's turn
-      if (rs.active_seat !== seatNumber || rs.phase !== 'playing') return;
+      if (rs.active_seat !== seatNumber || rs.phase !== 'playing') break;
 
       console.log(`[AI] Seat ${seatNumber} is thinking...`);
       
@@ -32,34 +35,42 @@ async function processAiTurn(seatNumber) {
       
       // 1. Handle Action Card Targeting
       if (rs.awaiting_target && rs.awaiting_target.seat === seatNumber) {
-        await new Promise(r => setTimeout(r, 800)); // natural delay
-        await resolveAiAction(seatNumber, rs.awaiting_target.card);
-        return; 
+        await new Promise(r => setTimeout(r, 200));
+        const latestRs = gameCache?.round_state;
+        if (latestRs && latestRs.awaiting_target && latestRs.awaiting_target.seat === seatNumber) {
+          await resolveAiAction(seatNumber, latestRs.awaiting_target.card);
+        }
+        continue; 
       }
 
       // 2. Decide: HIT or STAY
       const decision = decideAiMove(player, cards, g.deck_state || [], rs.scores);
       console.log(`[AI] Seat ${seatNumber} decision: ${decision}`);
       
-      await new Promise(r => setTimeout(r, 1000)); // natural delay
+      await new Promise(r => setTimeout(r, 300));
       
       if (decision === 'hit') {
         await doHit(seatNumber);
       } else {
         await doStay(seatNumber);
+        break; // Turn ended
       }
+
+      // Small pause to allow the local state (gameCache) to update from the move
+      await new Promise(r => setTimeout(r, 100));
+    }
   } catch (err) {
     console.error(`[AI] Critical error for seat ${seatNumber}:`, err);
   } finally {
-    aiThinking = false;
-    
+    aiThinking.delete(seatNumber);
+
     // Auto-trigger the next AI player if it is their turn
-    // (since we might have missed their database event while we were locked)
+    // (in case we missed their database event while we were locked)
     if (gameCache && gameCache.round_state) {
-        const rs = gameCache.round_state;
-        if (rs.phase === 'playing' && rs.hands[rs.active_seat] && rs.hands[rs.active_seat].is_ai) {
-            setTimeout(() => processAiTurn(rs.active_seat), 500);
-        }
+      const rs = gameCache.round_state;
+      if (rs.phase === 'playing' && rs.hands[rs.active_seat] && rs.hands[rs.active_seat].is_ai) {
+        setTimeout(() => processAiTurn(rs.active_seat), 300);
+      }
     }
   }
 }
@@ -122,19 +133,24 @@ async function resolveAiAction(aiSeat, card) {
   const seats = Object.keys(rs.hands).map(Number);
   const targetScore = gameCache.target_score || 200;
   
-  // Find a target: prefer other active players, but fall back to self
-  // for any action card when no one else is active.
+  // Find a target
   let targets = seats.filter(s => s !== aiSeat && rs.hands[s].status === 'playing');
   
-  let targetSeat = null;
   if (targets.length === 0) {
-    // No other active players — must self-target
-    targetSeat = aiSeat;
+    if (card.effect === 'freeze') {
+      await selectTarget(aiSeat, aiSeat);
+    } else {
+      // No valid targets — discard the action and advance the turn
+      const g = gameCache;
+      const nextRs = { ...g.round_state };
+      delete nextRs.awaiting_target;
+      nextRs.log.push(`No valid targets for ${card.name} — discarded.`);
+      advanceTurn(nextRs);
+      await updateGameState(g.deck_state, g.discard_pile, nextRs);
+    }
   } else {
     // Target the person with the highest overall score
     targets.sort((a, b) => (rs.scores[b] || 0) - (rs.scores[a] || 0));
-    targetSeat = targets[0];
+    await selectTarget(targets[0], aiSeat);
   }
-
-  await selectTarget(targetSeat, aiSeat);
 }

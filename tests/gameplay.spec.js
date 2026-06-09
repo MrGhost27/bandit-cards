@@ -179,7 +179,7 @@ test.describe('Bandit Cards Gameplay Flow', () => {
       const nextBtn = page.locator('#btn-next-round');
       if (await nextBtn.isVisible()) {
         console.log('Starting next round...');
-        await nextBtn.click({ force: true });
+        await nextBtn.evaluate(el => el.click());
         continue;
       }
 
@@ -195,7 +195,7 @@ test.describe('Bandit Cards Gameplay Flow', () => {
       const hitBtn = page.locator('#btn-hit');
       if (await hitBtn.isVisible()) {
         // Play extremely safe to guarantee points
-        const cardCount = await page.locator('.player-row.active .card-mini').count();
+        const cardCount = await page.locator('.player-row.active .card').count();
         if (cardCount >= 2 || Math.random() < 0.2) {
           console.log('Choosing to STAY...');
           await page.locator('#btn-stay').click({ force: true });

@@ -270,7 +270,7 @@ async function doStartGame() {
 
   // Fetch players
   const { data: players } = await db.from('bandit_players')
-    .select('seat_number, display_name, profile_id')
+    .select('seat_number, display_name, profile_id, is_ai, ai_difficulty, ai_personality')
     .eq('game_id', gameId)
     .order('seat_number');
   if (!players || players.length < 2) {
@@ -305,7 +305,9 @@ async function doStartGame() {
 
     hands[p.seat_number] = {
       cards: [card], status: 'playing', name: p.display_name, 
-      lastDrawn: true, is_ai: p.is_ai
+      lastDrawn: true, is_ai: p.is_ai,
+      ai_difficulty: p.ai_difficulty,
+      ai_personality: p.ai_personality
     };
     scores[p.seat_number] = 0;
   });
