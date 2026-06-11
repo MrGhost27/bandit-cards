@@ -9,6 +9,9 @@ function generateCode() {
 
 async function doCreateGame() {
   showSync('Creating game…');
+  const errEl = document.getElementById('join-err');
+  if (errEl) errEl.textContent = '';
+
   const code = generateCode();
   const isQuick = document.getElementById('quick-play-check')?.checked || false;
   const redrawActions = document.getElementById('redraw-actions-check')?.checked || false;
@@ -27,7 +30,14 @@ async function doCreateGame() {
 
   let { data, error } = await db.from('bandit_games').insert(gameData).select().single();
   
-  // FALLBACK: If column is missing in DB, retry without it
+  // FALLBACK: If a column is missing in DB schema, progressively retry without it
+  if (error && (error.message?.includes('column "face_down_cards" does not exist') || error.code === '42703')) {
+    console.warn("[Lobby] Missing 'face_down_cards' column, falling back...");
+    delete gameData.face_down_cards;
+    const retry = await db.from('bandit_games').insert(gameData).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
   if (error && error.message?.includes('column "redraw_initial_actions" does not exist')) {
     console.warn("[Lobby] Missing 'redraw_initial_actions' column, falling back...");
     delete gameData.redraw_initial_actions;
@@ -35,7 +45,14 @@ async function doCreateGame() {
     data = retry.data;
     error = retry.error;
   }
-  if (error) { showSynced(); addLog('Could not create game: ' + error.message, 'bad'); return; }
+
+  if (error) {
+    showSynced();
+    const msg = 'Could not create game: ' + error.message;
+    console.error('[Lobby]', msg);
+    if (errEl) errEl.textContent = msg;
+    return;
+  }
 
   gameId = data.id;
   joinCode = code;
