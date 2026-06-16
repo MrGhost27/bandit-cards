@@ -706,6 +706,52 @@ body.theme-lego h2 { color: var(--accent); }
   cursor: default;
 }
 
+/* ── DECK STYLES (SPRITE SHEETS) ─────────────────────────────────────────── */
+body.deck-frozen .card, body.deck-groovy .card {
+    background-size: 500% 300%;
+    color: transparent !important;
+    text-shadow: none !important;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    background-blend-mode: normal;
+}
+
+body.deck-frozen .card .card-label, body.deck-groovy .card .card-label { display: none; }
+body.deck-frozen .card::before, body.deck-groovy .card::before { display: none; }
+
+body.deck-frozen .card { background-image: url('../assets/deck_frozen.jpg'); }
+body.deck-groovy .card { background-image: url('../assets/deck_groovy.jpg'); }
+
+/* Map Sprite Positions */
+body.deck-frozen .card.card-val-1, body.deck-groovy .card.card-val-1 { background-position: 0% 0%; }
+body.deck-frozen .card.card-val-2, body.deck-groovy .card.card-val-2 { background-position: 25% 0%; }
+body.deck-frozen .card.card-val-3, body.deck-groovy .card.card-val-3 { background-position: 50% 0%; }
+body.deck-frozen .card.card-val-4, body.deck-groovy .card.card-val-4 { background-position: 75% 0%; }
+body.deck-frozen .card.card-val-5, body.deck-groovy .card.card-val-5 { background-position: 100% 0%; }
+
+body.deck-frozen .card.card-val-6, body.deck-groovy .card.card-val-6 { background-position: 0% 50%; }
+body.deck-frozen .card.card-val-7, body.deck-groovy .card.card-val-7 { background-position: 25% 50%; }
+body.deck-frozen .card.card-val-8, body.deck-groovy .card.card-val-8 { background-position: 50% 50%; }
+body.deck-frozen .card.card-val-9, body.deck-groovy .card.card-val-9 { background-position: 75% 50%; }
+body.deck-frozen .card.card-val-10, body.deck-groovy .card.card-val-10 { background-position: 100% 50%; }
+
+body.deck-frozen .card.card-val-11, body.deck-groovy .card.card-val-11 { background-position: 0% 100%; }
+body.deck-frozen .card.card-val-12, body.deck-groovy .card.card-val-12 { background-position: 25% 100%; }
+body.deck-frozen .card.card-val-freeze, body.deck-groovy .card.card-val-freeze { background-position: 50% 100%; }
+body.deck-frozen .card.card-val-flip_3, body.deck-groovy .card.card-val-flip_3 { background-position: 75% 100%; }
+body.deck-frozen .card.card-back, body.deck-groovy .card.card-back { background-position: 100% 100%; }
+
+/* Safety Card Exception (No sprite on sheet) */
+body.deck-frozen .card.card-val-safety, body.deck-groovy .card.card-val-safety {
+    background-image: url('../assets/card-texture.png');
+    background-size: cover;
+    color: var(--primary) !important;
+    text-shadow: 0 0 10px var(--primary-glow) !important;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+body.deck-frozen .card.card-val-safety .card-label, body.deck-groovy .card.card-val-safety .card-label { display: block; }
+body.deck-frozen .card.card-val-safety::before, body.deck-groovy .card.card-val-safety::before { display: block; }
+
 /* ── RESPONSIVE DESIGN (MOBILE FITTING) ───────────────────── */
 @media (max-width: 600px) {
   /* Let UI containers shrink to fit width, add some padding so it's not strictly touching screen edges */

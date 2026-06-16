@@ -195,9 +195,13 @@ function renderGame() {
       else if (isLast) cls += ' new';
       
       if (!isHidden) {
-          if (c.type === 'number') cls += ' standard';
-          else if (c.type === 'action') cls += ' action';
-          else if (c.type === 'modifier') cls += ' modifier';
+          if (c.type === 'number') {
+              cls += ' standard card-val-' + c.value;
+          } else if (c.type === 'action') {
+              cls += ' action card-val-' + c.name.toLowerCase().replace(' ', '_');
+          } else if (c.type === 'modifier') {
+              cls += ' modifier card-val-' + c.name.toLowerCase().replace(' ', '_');
+          }
       }
 
       let label = '';

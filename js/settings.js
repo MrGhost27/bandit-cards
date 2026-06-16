@@ -13,7 +13,8 @@ function loadSettings() {
         largeCards: false,
         soundtrack: 'theme_default',
         displayMode: 'auto',
-        resolutionScale: 100
+        resolutionScale: 100,
+        deckStyle: 'standard'
     };
 
     try {
@@ -36,6 +37,7 @@ function loadSettings() {
     const elSoundtrack = document.getElementById('set-soundtrack');
     const elDisplay = document.getElementById('set-display-mode');
     const elScale = document.getElementById('set-scale');
+    const elDeckStyle = document.getElementById('set-deck-style');
     const elLblVol = document.getElementById('lbl-volume');
     const elLblScale = document.getElementById('lbl-scale');
 
@@ -45,6 +47,7 @@ function loadSettings() {
     if (elSoundtrack) elSoundtrack.value = settings.soundtrack || 'theme_default';
     if (elDisplay) elDisplay.value = settings.displayMode || 'auto';
     if (elScale) elScale.value = settings.resolutionScale || 100;
+    if (elDeckStyle) elDeckStyle.value = settings.deckStyle || 'standard';
     if (elLblVol) elLblVol.textContent = settings.volume + '%';
     if (elLblScale) elLblScale.textContent = (settings.resolutionScale || 100) + '%';
 
@@ -61,6 +64,11 @@ function loadSettings() {
     } else {
         document.body.classList.remove('large-cards');
     }
+
+    document.body.classList.remove('deck-frozen', 'deck-groovy');
+    if (settings.deckStyle && settings.deckStyle !== 'standard') {
+        document.body.classList.add('deck-' + settings.deckStyle);
+    }
 }
 
 function updateSettings() {
@@ -70,13 +78,14 @@ function updateSettings() {
     const soundtrack = document.getElementById('set-soundtrack') ? document.getElementById('set-soundtrack').value : 'theme_default';
     const displayMode = document.getElementById('set-display-mode') ? document.getElementById('set-display-mode').value : 'auto';
     const resolutionScale = parseInt(document.getElementById('set-scale') ? document.getElementById('set-scale').value : '100', 10);
+    const deckStyle = document.getElementById('set-deck-style') ? document.getElementById('set-deck-style').value : 'standard';
 
     document.getElementById('lbl-volume').textContent = volume + '%';
     if (document.getElementById('lbl-scale')) document.getElementById('lbl-scale').textContent = resolutionScale + '%';
 
     // Update state immediately
     window.masterVolume = volume / 100;
-    window.globalSettings = { theme, volume, largeCards, soundtrack, displayMode, resolutionScale };
+    window.globalSettings = { theme, volume, largeCards, soundtrack, displayMode, resolutionScale, deckStyle };
     
     if (typeof applyTheme === 'function') {
         applyTheme(theme);
@@ -86,6 +95,11 @@ function updateSettings() {
         document.body.classList.add('large-cards');
     } else {
         document.body.classList.remove('large-cards');
+    }
+
+    document.body.classList.remove('deck-frozen', 'deck-groovy');
+    if (deckStyle !== 'standard') {
+        document.body.classList.add('deck-' + deckStyle);
     }
 
     if (typeof enforceScreenFit === 'function') {

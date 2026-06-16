@@ -63,6 +63,15 @@
             </div>
 
             <div style="margin-bottom: 15px;">
+                <label>DECK STYLE</label>
+                <select id="set-deck-style" onchange="sfx('blip'); updateSettings()" style="width:100%; background:var(--bg); color:var(--text); border:1px solid var(--border); padding:8px; font-family:var(--font-body); font-size:12px;">
+                    <option value="standard">Standard (CSS text)</option>
+                    <option value="frozen">Frozen Reversal (Artwork)</option>
+                    <option value="groovy">Groovy Space (Artwork)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
                 <label>DISPLAY MODE</label>
                 <select id="set-display-mode" onchange="updateSettings()" style="width:100%; background:var(--bg); color:var(--text); border:1px solid var(--border); padding:8px; font-family:var(--font-body); font-size:12px;">
                     <option value="auto">Auto (Responsive)</option>
