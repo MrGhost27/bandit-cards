@@ -389,9 +389,9 @@ function enforceScreenFit() {
   const scaleH = wh / minH;
   let scale = Math.min(scaleW, scaleH);
   
-  // Only zoom out on small screens, never zoom in (unless forced by mode)
+  // In 'auto' mode, we now use native CSS media queries instead of JS zoom.
   if (mode === 'auto') {
-      if (scale > 1) scale = 1; 
+      scale = 1; 
   }
   
   document.documentElement.style.setProperty('--app-zoom', scale * userScale);
