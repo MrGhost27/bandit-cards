@@ -707,20 +707,26 @@ body.theme-lego h2 { color: var(--accent); }
 }
 
 /* ── DECK STYLES (SPRITE SHEETS) ─────────────────────────────────────────── */
-body.deck-frozen .card, body.deck-groovy .card {
+/*
+ * IMPORTANT: The sprite sheet background-image is ONLY applied to cards with
+ * explicit position mappings below. Any card type not on the sheet (e.g. safety,
+ * unknown modifiers) automatically falls back to the standard CSS appearance.
+ */
+
+/* These are the card classes that exist on the Frozen sprite sheet */
+body.deck-frozen .card:is(.card-val-1,.card-val-2,.card-val-3,.card-val-4,.card-val-5,.card-val-6,.card-val-7,.card-val-8,.card-val-9,.card-val-10,.card-val-11,.card-val-12,.card-val-freeze,.card-val-flip_3,.card-back) {
+    background-image: url('../assets/deck_frozen.jpg');
+    background-size: 561.8% 347.2%;
     color: transparent !important;
     text-shadow: none !important;
     border: none;
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     background-blend-mode: normal;
 }
+body.deck-frozen .card:is(.card-val-1,.card-val-2,.card-val-3,.card-val-4,.card-val-5,.card-val-6,.card-val-7,.card-val-8,.card-val-9,.card-val-10,.card-val-11,.card-val-12,.card-val-freeze,.card-val-flip_3,.card-back) .card-label { display: none; }
+body.deck-frozen .card:is(.card-val-1,.card-val-2,.card-val-3,.card-val-4,.card-val-5,.card-val-6,.card-val-7,.card-val-8,.card-val-9,.card-val-10,.card-val-11,.card-val-12,.card-val-freeze,.card-val-flip_3,.card-back)::before { display: none; }
 
-body.deck-frozen .card .card-label, body.deck-groovy .card .card-label { display: none; }
-body.deck-frozen .card::before, body.deck-groovy .card::before { display: none; }
-
-/* ── FROZEN REVERSAL ── */
-body.deck-frozen .card { background-image: url('../assets/deck_frozen.jpg'); background-size: 561.8% 347.2%; }
-
+/* ── FROZEN REVERSAL positions ── */
 body.deck-frozen .card.card-val-1  { background-position: 4.01%  12.50%; }
 body.deck-frozen .card.card-val-2  { background-position: 27.01% 12.50%; }
 body.deck-frozen .card.card-val-3  { background-position: 50.00% 12.50%; }
@@ -737,9 +743,20 @@ body.deck-frozen .card.card-val-freeze { background-position: 50.00% 95.37%; }
 body.deck-frozen .card.card-val-flip_3 { background-position: 72.99% 95.37%; }
 body.deck-frozen .card.card-back   { background-position: 95.99% 95.37%; }
 
-/* ── GROOVY SPACE ── */
-body.deck-groovy .card { background-image: url('../assets/deck_groovy.jpg'); background-size: 546.4% 366.3%; }
+/* These are the card classes that exist on the Groovy sprite sheet */
+body.deck-groovy .card:is(.card-val-1,.card-val-2,.card-val-3,.card-val-4,.card-val-5,.card-val-6,.card-val-7,.card-val-8,.card-val-9,.card-val-10,.card-val-11,.card-val-12,.card-val-freeze,.card-val-flip_3,.card-back) {
+    background-image: url('../assets/deck_groovy.jpg');
+    background-size: 546.4% 366.3%;
+    color: transparent !important;
+    text-shadow: none !important;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    background-blend-mode: normal;
+}
+body.deck-groovy .card:is(.card-val-1,.card-val-2,.card-val-3,.card-val-4,.card-val-5,.card-val-6,.card-val-7,.card-val-8,.card-val-9,.card-val-10,.card-val-11,.card-val-12,.card-val-freeze,.card-val-flip_3,.card-back) .card-label { display: none; }
+body.deck-groovy .card:is(.card-val-1,.card-val-2,.card-val-3,.card-val-4,.card-val-5,.card-val-6,.card-val-7,.card-val-8,.card-val-9,.card-val-10,.card-val-11,.card-val-12,.card-val-freeze,.card-val-flip_3,.card-back)::before { display: none; }
 
+/* ── GROOVY SPACE positions ── */
 body.deck-groovy .card.card-val-1  { background-position: 3.92%  10.73%; }
 body.deck-groovy .card.card-val-2  { background-position: 27.05% 10.73%; }
 body.deck-groovy .card.card-val-3  { background-position: 50.18% 10.73%; }
@@ -755,17 +772,6 @@ body.deck-groovy .card.card-val-12 { background-position: 27.05% 87.76%; }
 body.deck-groovy .card.card-val-freeze { background-position: 50.18% 87.76%; }
 body.deck-groovy .card.card-val-flip_3 { background-position: 73.32% 87.76%; }
 body.deck-groovy .card.card-back   { background-position: 96.45% 87.76%; }
-
-/* Safety Card Exception (No sprite on sheet) */
-body.deck-frozen .card.card-val-safety, body.deck-groovy .card.card-val-safety {
-    background-image: url('../assets/card-texture.png');
-    background-size: cover;
-    color: var(--primary) !important;
-    text-shadow: 0 0 10px var(--primary-glow) !important;
-    border: 1px solid rgba(255,255,255,0.2);
-}
-body.deck-frozen .card.card-val-safety .card-label, body.deck-groovy .card.card-val-safety .card-label { display: block; }
-body.deck-frozen .card.card-val-safety::before, body.deck-groovy .card.card-val-safety::before { display: block; }
 
 /* ── RESPONSIVE DESIGN (MOBILE FITTING) ───────────────────── */
 @media (max-width: 600px) {
