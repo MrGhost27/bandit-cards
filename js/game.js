@@ -53,6 +53,10 @@ async function doHit(actingSeat = null) {
     } else {
       hand.cards.push(card);
       rs.log.push(`${playerName} drew ${card.value} — Safe.`);
+      if (checkSevenCards(rs, seat)) {
+          updateGameState(deck, discard, rs);
+          return;
+      }
       advanceTurn(rs); // One card per turn — pass turn immediately
     }
   } 
@@ -138,6 +142,10 @@ async function selectTarget(targetSeat, actingSeat = null) {
         }
       } else {
         rs.log.push(`${targetName} drew ${newCard.value} — Safe.`);
+        if (checkSevenCards(rs, targetSeat)) {
+            updateGameState(deck, discard, rs);
+            return;
+        }
       }
     }
   }
@@ -229,7 +237,13 @@ function endRound(rs) {
   seats.forEach(seat => {
     const h = rs.hands[seat];
     if (h.status === 'stayed') {
-      const roundScore = scoreHand(h.cards);
+      let roundScore = scoreHand(h.cards);
+      
+      if (rs.seven_card_winner === seat) {
+          roundScore += SEVEN_CARD_BONUS;
+          rs.log.push(`⭐ ${h.name}: +${SEVEN_CARD_BONUS} bonus for 7 cards!`);
+      }
+      
       h.round_score = roundScore;
       rs.scores[seat] = (rs.scores[seat] || 0) + roundScore;
       rs.log.push(`${h.name}: +${roundScore} pts (total: ${rs.scores[seat]})`);
@@ -310,4 +324,24 @@ async function startNextRound() {
   rs.log.push(`── Round ${nextRound} begins ──`);
 
   updateGameState(deck, discard, rs);
+}
+
+function checkSevenCards(rs, seat) {
+    const hand = rs.hands[seat];
+    if (hand && hand.status === 'playing') {
+        const numberCards = hand.cards.filter(c => c.type === 'number');
+        if (numberCards.length >= 7) {
+            const playerName = hand.name || 'Player ' + seat;
+            rs.log.push(`⭐ ${playerName} collected 7 Number cards without busting! Round ends! ⭐`);
+            rs.seven_card_winner = seat;
+            hand.status = 'stayed';
+            
+            // Remove awaiting target if it was an action card
+            delete rs.awaiting_target;
+            
+            endRound(rs);
+            return true;
+        }
+    }
+    return false;
 }
