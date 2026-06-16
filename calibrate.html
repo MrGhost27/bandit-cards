@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deck Sprite Calibrator</title>
+<style>
+  body { font-family: sans-serif; background: #1a1a2e; color: #eee; padding: 20px; margin: 0; }
+  h2 { color: #00ffaa; font-family: monospace; letter-spacing: 4px; }
+  .workspace { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+  .controls { width: 320px; display: flex; flex-direction: column; gap: 12px; background: #111; padding: 15px; border-radius: 8px; }
+  .preview { position: relative; display: inline-block; border: 2px solid #333; border-radius: 4px; overflow: hidden; }
+  img { max-width: 750px; height: auto; display: block; }
+  .grid-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+  .card-box {
+    position: absolute; border: 2px solid #0f0;
+    background: rgba(0,255,0,0.1); box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: bold; color: #0f0; font-family: monospace;
+  }
+  label { font-size: 12px; display: flex; flex-direction: column; gap: 4px; color: #aaa; letter-spacing: 1px; }
+  input[type=range] { width: 100%; accent-color: #00ffaa; }
+  input[type=number] { width: 70px; background: #222; color: #fff; border: 1px solid #444; padding: 3px 6px; border-radius: 4px; }
+  .val-row { display: flex; justify-content: space-between; align-items: center; }
+  .output { margin-top: 10px; background: #0a0a1a; padding: 12px; font-family: monospace; font-size: 11px; white-space: pre-wrap; word-wrap: break-word; border-radius: 4px; border: 1px solid #333; color: #00ffaa; max-height: 200px; overflow-y: auto; }
+  select { padding: 8px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px; font-size: 13px; margin-bottom: 10px; width: 100%; }
+  button { background: #00ffaa; color: #000; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; letter-spacing: 2px; }
+  button:hover { background: #00cc88; }
+</style>
+</head>
+<body>
+<h2>// SPRITE CALIBRATOR</h2>
+<p style="color:#666; font-size:12px;">Drag sliders until the green boxes line up perfectly with each card on the sprite sheet. Then click COPY CSS.</p>
+
+<select id="sheetSelect" onchange="updateImage()">
+    <option value="assets/deck_frozen.jpg">Frozen Reversal</option>
+    <option value="assets/deck_groovy.jpg">Groovy Space</option>
+</select>
+
+<div class="workspace">
+  <div class="controls">
+    <label>
+      <div class="val-row"><span>CARD WIDTH (%)</span> <input type="number" id="w-num" step="0.1"></div>
+      <input type="range" id="w" min="5" max="30" step="0.1" value="18.5">
+    </label>
+    <label>
+      <div class="val-row"><span>CARD HEIGHT (%)</span> <input type="number" id="h-num" step="0.1"></div>
+      <input type="range" id="h" min="5" max="50" step="0.1" value="28">
+    </label>
+    <label>
+      <div class="val-row"><span>OFFSET LEFT (%)</span> <input type="number" id="ox-num" step="0.1"></div>
+      <input type="range" id="ox" min="0" max="20" step="0.1" value="2">
+    </label>
+    <label>
+      <div class="val-row"><span>OFFSET TOP (%)</span> <input type="number" id="oy-num" step="0.1"></div>
+      <input type="range" id="oy" min="0" max="40" step="0.1" value="13">
+    </label>
+    <label>
+      <div class="val-row"><span>GAP X (%)</span> <input type="number" id="gx-num" step="0.1"></div>
+      <input type="range" id="gx" min="0" max="10" step="0.1" value="1">
+    </label>
+    <label>
+      <div class="val-row"><span>GAP Y (%)</span> <input type="number" id="gy-num" step="0.1"></div>
+      <input type="range" id="gy" min="0" max="15" step="0.1" value="3">
+    </label>
+
+    <button onclick="copyCSS()">COPY CSS TO CLIPBOARD</button>
+    <div class="output" id="out"></div>
+  </div>
+  
+  <div class="preview">
+    <img id="img" src="assets/deck_frozen.jpg">
+    <div class="grid-overlay" id="grid"></div>
+  </div>
+</div>
+
+<script>
+  const LABELS = [
+    '1','2','3','4','5',
+    '6','7','8','9','10',
+    '11','12','FREEZE','FLIP','BACK'
+  ];
+
+  const inputs = ['w', 'h', 'ox', 'oy', 'gx', 'gy'];
+  const state = {};
+
+  function updateImage() {
+      document.getElementById('img').src = document.getElementById('sheetSelect').value;
+  }
+
+  function render() {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      
+      const { w, h, ox, oy, gx, gy } = state;
+      
+      let idx = 0;
+      for (let row = 0; row < 3; row++) {
+          for (let col = 0; col < 5; col++) {
+              const left = ox + col * (w + gx);
+              const top = oy + row * (h + gy);
+              const box = document.createElement('div');
+              box.className = 'card-box';
+              box.style.left = left + '%';
+              box.style.top = top + '%';
+              box.style.width = w + '%';
+              box.style.height = h + '%';
+              box.textContent = LABELS[idx] || '';
+              grid.appendChild(box);
+              idx++;
+          }
+      }
+
+      updateOutput();
+  }
+
+  function getPositions() {
+      const { w, h, ox, oy, gx, gy } = state;
+      const cols = 5, rows = 3;
+      // CSS background-position needs percent values relative to the non-image area
+      // For a 5-col grid: position = col_left_px / (image_width - card_width_px) * 100
+      // But since we're using background-size approach, we use:
+      //   bg-size = (100 / w * 100)% and position is (col / (cols-1)) * 100
+      const scaleX = 100 / w * 100;
+      const scaleY = 100 / h * 100;
+      
+      const positions = [];
+      let idx = 0;
+      for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+              // The x position of this cell as % of total image width
+              const cellLeft = ox + col * (w + gx);
+              const cellTop  = oy + row * (h + gy);
+              // Convert to background-position %
+              // bg-pos% = (offset_from_left / (image_width - cell_width)) * 100
+              // Since everything is in % of image: (cellLeft / (100 - w)) * 100
+              const posX = (100 - w) > 0 ? (cellLeft / (100 - w)) * 100 : 0;
+              const posY = (100 - h) > 0 ? (cellTop  / (100 - h)) * 100 : 0;
+              positions.push({ label: LABELS[idx], posX: posX.toFixed(2), posY: posY.toFixed(2) });
+              idx++;
+          }
+      }
+      return { positions, scaleX: scaleX.toFixed(1), scaleY: scaleY.toFixed(1) };
+  }
+
+  function updateOutput() {
+      const { positions, scaleX, scaleY } = getPositions();
+      const names = ['1','2','3','4','5','6','7','8','9','10','11','12','freeze','flip_3','back'];
+      let css = `/* background-size: ${scaleX}% ${scaleY}% */\n\n`;
+      positions.forEach((p, i) => {
+          css += `.card-val-${names[i]} { background-position: ${p.posX}% ${p.posY}%; }\n`;
+      });
+      document.getElementById('out').textContent = css;
+  }
+
+  function copyCSS() {
+      const { positions, scaleX, scaleY } = getPositions();
+      const sheet = document.getElementById('sheetSelect').value.includes('frozen') ? 'frozen' : 'groovy';
+      const prefix = `body.deck-${sheet} .card`;
+      const names = ['1','2','3','4','5','6','7','8','9','10','11','12','freeze','flip_3','card-back'];
+      
+      let css = `/* ${sheet.toUpperCase()} DECK - background-size: ${scaleX}% ${scaleY}% */\n`;
+      css += `${prefix} { background-size: ${scaleX}% ${scaleY}%; }\n\n`;
+      positions.forEach((p, i) => {
+          if (names[i] === 'card-back') {
+              css += `${prefix}.card-back { background-position: ${p.posX}% ${p.posY}%; }\n`;
+          } else {
+              css += `${prefix}.card-val-${names[i]} { background-position: ${p.posX}% ${p.posY}%; }\n`;
+          }
+      });
+
+      navigator.clipboard.writeText(css).then(() => {
+          document.querySelector('button').textContent = 'COPIED!';
+          setTimeout(() => document.querySelector('button').textContent = 'COPY CSS TO CLIPBOARD', 2000);
+      });
+  }
+
+  inputs.forEach(id => {
+      const range = document.getElementById(id);
+      const num = document.getElementById(id + '-num');
+      const update = (val) => {
+          state[id] = parseFloat(val);
+          range.value = val;
+          num.value = parseFloat(val).toFixed(1);
+          render();
+      };
+      range.addEventListener('input', e => update(e.target.value));
+      num.addEventListener('input', e => update(e.target.value));
+      update(range.value);
+  });
+</script>
+</body>
+</html>
