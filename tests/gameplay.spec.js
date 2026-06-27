@@ -88,6 +88,11 @@ test.describe('Bandit Cards Gameplay Flow', () => {
     console.log('Game screen is visible. Test PASSED.');
     
     await expect(page.locator('#players-area')).not.toBeEmpty();
+
+    // Clean up test account
+    await page.evaluate(async () => {
+      await db.rpc('delete_user_self');
+    });
   });
 
   test('should be able to sign out', async ({ page }) => {
@@ -116,6 +121,10 @@ test.describe('Bandit Cards Gameplay Flow', () => {
     await page.waitForTimeout(1000);
     
     // Direct DOM click to bypass any potential overlay/z-index issues
+    // Clean up test account first
+    await page.evaluate(async () => {
+      await db.rpc('delete_user_self');
+    });
     await headerSignOut.evaluate(el => el.click());
 
     // 4. Verify back at auth screen
@@ -213,5 +222,10 @@ test.describe('Bandit Cards Gameplay Flow', () => {
 
     expect(gameOver).toBe(true);
     console.log(`Full game completed successfully in ${loopCount} loops.`);
+
+    // Clean up test account
+    await page.evaluate(async () => {
+      await db.rpc('delete_user_self');
+    });
   });
 });

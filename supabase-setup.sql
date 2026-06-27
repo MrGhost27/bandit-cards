@@ -132,3 +132,27 @@ CREATE POLICY "bandit_round_history_insert" ON bandit_round_history
 -- ═══════════════════════════════════════════════════════════
 ALTER PUBLICATION supabase_realtime ADD TABLE bandit_games;
 ALTER PUBLICATION supabase_realtime ADD TABLE bandit_players;
+
+-- ═══════════════════════════════════════════════════════════
+-- HELPER FOR TESTING — Delete own account
+-- ═══════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION delete_user_self()
+RETURNS void AS $$
+BEGIN
+  -- Delete player records
+  DELETE FROM bandit_players WHERE profile_id = auth.uid();
+  
+  -- Delete spectator records
+  DELETE FROM bandit_spectators WHERE profile_id = auth.uid();
+  
+  -- Delete games hosted by the user
+  DELETE FROM bandit_games WHERE host_id = auth.uid();
+  
+  -- Delete user profile
+  DELETE FROM profiles WHERE id = auth.uid();
+  
+  -- Delete auth user
+  DELETE FROM auth.users WHERE id = auth.uid();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
