@@ -198,10 +198,10 @@ test.describe('Bandit Cards Gameplay Flow', () => {
         const cardCount = await page.locator('.player-row.active .card').count();
         if (cardCount >= 2 || Math.random() < 0.2) {
           console.log('Choosing to STAY...');
-          await page.locator('#btn-stay').click({ force: true });
+          await page.locator('#btn-stay').evaluate(el => el.click());
         } else {
           console.log('Choosing to HIT...');
-          await hitBtn.click({ force: true });
+          await hitBtn.evaluate(el => el.click());
         }
       }
       
